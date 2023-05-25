@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.kiwi.user.mapper.UserMapper">
+
+	<resultMap type="UserDto" id="user">
+		<result column="id" property="id" />
+		<result column="password" property="password" />
+		<result column="salt" property="salt" />
+		<result column="email" property="email" />
+		<result column="nickname" property="nickname" />
+		<result column="age" property="age" />
+		<result column="create_date" property="createdate" />
+		<result column="login_date" property="logindate" />
+		<result column="gender" property="gender" />
+		<result column="is_restrict" property="isRestrict" />
+		<result column="user_no" property="userno" />
+	</resultMap>
+
+	<select id="login" parameterType="String" resultMap="user">
+		select
+		user_no, id,
+		nickname, email
+		from user
+		where id = #{id} and
+		password =
+		#{pw}
+	</select>
+
+	<select id="findSalt" parameterType="String" resultType="String">
+		select
+		salt
+		from user
+		where id = #{id}
+	</select>
+
+	<select id="userInfo" parameterType="string" resultMap="user">
+		select
+		user_no, id, nickname, email
+		from user
+		where id = #{id}
+	</select>
+
+	<select id="getRefreshToken" parameterType="string"
+		resultType="string">
+		select token
+		from user
+		where id = #{userid}
+	</select>
+
+	<update id="saveRefreshToken" parameterType="map">
+		update user
+		set token
+		= #{token}
+		where id = #{userid}
+	</update>
+
+	<update id="deleteRefreshToken" parameterType="map">
+		update
+		user
+		set
+		token = #{token, jdbcType=VARCHAR}
+		where id =
+		#{userid}
+	</update>
+
+	<select id="idCheck" parameterType="String" resultType="String">
+		select id
+		from user
+		where id=#{id}
+	</select>
+	<select id="nickCheck" parameterType="String"
+		resultType="String">
+		select nickname
+		from user
+		where nickname= #{nickname}
+	</select>
+
+	<select id="getFollower" parameterType="Integer"
+		resultType="Integer">
+		select f.user_no `팔로워`
+		from user u join follow f
+		on u.user_no
+		= f.user_no
+		where f.followee = #{userno}
+		order by f.create_date
+
+	</select>
+	<select id="getFollowee" parameterType="Integer"
+		resultType="Integer">
+		select f.followee `팔로잉`
+		from user u join follow f
+		on
+		u.user_no = f.user_no
+		where u.user_no = #{userno}
+		order by f.create_date
+
+	</select>
+
+	<insert id="regist" parameterType="map">
+		insert into user (id,
+		password, salt, email, nickname, age, gender)
+		values(#{id},
+		#{password}, #{salt}, #{email}, #{nickname}, #{age}, #{gender})
+	</insert>
+
+	<select id="getOtherUser" parameterType="int" resultMap="user">
+		select
+		id, nickname, email, user_no
+		from user
+		where user_no = #{userno}
+	</select>
+
+	<insert id="addFollow" parameterType="int">
+		insert into follow(user_no,
+		followee) values(#{userno}, #{followee})
+	</insert>
+
+	<delete id="deleteFollow" parameterType="int">
+		delete from follow where
+		user_no = #{userno} and followee = #{followee}
+	</delete>
+
+</mapper>

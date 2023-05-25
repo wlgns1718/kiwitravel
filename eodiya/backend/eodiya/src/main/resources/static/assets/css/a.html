@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Insert title here</title>
+    <script type="text/javascript">
+      var obj = {}; // empty obejct
+      console.log(typeof obj);
+
+      var student = {
+        name: "김진우",
+        "user-area": "서울",
+        classNum: 10,
+        info: function () {
+          console.log(this.name + "은 " + this["user-area"] + this.classNum + "반");
+        },
+      };
+
+      // 객체의 속성에 접근
+      console.log(student.name); // 1. dot 표기법
+      console.log(student["name"]); // 2. [] 표기법
+
+      // 속성명에 연산자가 포함된 경우 [] 표기법만 접근 가능.
+      console.log(student["user-area"]); // 김진우
+      // console.log(student.user - area); // NaN
+      student.info(); // 김진우은 서울7반
+    </script>
+  </head>
+  <body></body>
+</html>

@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ssafy.kiwi.board.mapper.BoardMapper">
+
+	<resultMap type="boardDto" id="board">
+		<result column="board_no" property="boardno" />
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="create_date" property="createdate" />
+		<result column="hit" property="hit" />
+		<result column="scope" property="scope" />
+		<result column="user_no" property="userno" />
+		<result column="nickname" property="nickname" />
+		<result column="cnt_like" property="cntLike" />
+		<result column="cnt_reply" property="cntReply" />
+		<result column="islike" property="islike" />
+		<result column="cnt_image" property="cntimages" />
+	</resultMap>
+
+	<select id="getListWhenNoUserInfo" resultMap="board">
+		select b.board_no,
+		b.title, b.content, b.create_date, b.hit, b.scope, b.user_no, u.nickname,
+		(select
+		count(*) from likes where b.board_no = board_no) `cnt_like`,
+		(select
+		count(*) from reply where b.board_no = board_no) `cnt_reply`,
+		(select
+		count(*) from file where b.board_no = board_no) `cnt_image`
+		from board
+		b join user u
+		on b.user_no = u.user_no
+		left outer join likes l
+		on
+		b.board_no = l.board_no
+		where b.scope = 0
+		group by b.board_no
+		order by
+		b.create_date desc;
+	</select>
+
+	<select id="getListWhenUserInfoExistAndNotFollowSelect"
+		parameterType="Integer" resultMap="board">
+		select b.board_no, b.title,
+		b.content, b.create_date, b.hit, b.scope, b.user_no, u.nickname,
+		(select count(*)
+		from likes where b.board_no = board_no) `cnt_like`,
+		(select count(*)
+		from reply where b.board_no = board_no) `cnt_reply`,
+		if(l.board_no is
+		NOT NULL,1,0) `islike`,
+		(select count(*) from file where b.board_no =
+		board_no) `cnt_image`
+		from board b join user u
+		on b.user_no = u.user_no
+		left outer join likes l
+		on b.board_no = l.board_no and l.user_no =
+		#{userno}
+		where b.scope = 0 or (b.scope=1 or b.user_no in (select
+		followee from
+		follow where user_no = #{userno})) or b.user_no =
+		#{userno}
+		group by b.board_no
+		order by b.create_date desc;
+	</select>
+
+	<select id="getListWhenUserInfoExistAndFollowSelect"
+		parameterType="Integer" resultMap="board">
+		select b.board_no, b.title,
+		b.content, b.create_date, b.hit, b.scope, b.user_no, u.nickname,
+		(select count(*)
+		from likes where b.board_no = board_no) `cnt_like`,
+		(select count(*)
+		from reply where b.board_no = board_no) `cnt_reply`,
+		if(l.board_no is
+		NOT NULL,1,0) `islike`,
+		(select count(*) from file where b.board_no =
+		board_no) `cnt_image`
+		from board b join user u
+		on b.user_no = u.user_no
+		left outer join likes l
+		on b.board_no = l.board_no and l.user_no =
+		#{userno}
+		where (b.scope=1 or b.user_no in (select followee from follow
+		where user_no
+		= #{userno})) or b.user_no = #{userno}
+		group by b.board_no
+		order by b.create_date desc;
+	</select>
+
+	<insert id="writeArticle" parameterType="boardDto">
+		insert into board(title,
+		content, hit, scope, user_no)
+		values(#{title},
+		#{content}, 0, #{scope},
+		#{userno});
+		<selectKey keyProperty="boardno" resultType="Integer"
+			order="AFTER">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+	</insert>
+
+	<select id="getArticle" parameterType="boardViewDto"
+		resultMap="board">
+		select b.board_no, b.title, b.user_no, b.content,
+		b.create_date, b.hit,
+		b.scope,
+		u.nickname, (select count(*) from likes where b.board_no =
+		board_no)
+		`cnt_like`,(select count(*) from reply where b.board_no =
+		board_no)
+		`cnt_reply`,
+		if(l.board_no is NOT NULL,1,0) `islike`
+		from board
+		b join user u
+		on b.user_no = u.user_no
+		left outer join likes l
+		on
+		b.board_no = l.board_no and l.user_no = #{userno}
+		where b.board_no =
+		#{boardno}
+	</select>
+
+	<update id="updateHit" parameterType="int">
+		update board
+		set hit = hit +
+		1
+		where board_no = #{boardno}
+	</update>
+
+	<update id="modifyArticle" parameterType="boardDto">
+		update board
+		set title =
+		#{title}, content = #{content}, scope=#{scope}
+		where board_no =
+		#{boardno}
+	</update>
+
+	<delete id="deleteArticle" parameterType="int">
+		delete from board
+		where
+		board_no = #{boardno}
+	</delete>
+
+	<insert id="addLikes" parameterType="likesDto">
+		insert into likes (board_no,
+		user_no) values (#{boardno}, #{userno})
+	</insert>
+
+	<delete id="deleteLikes" parameterType="likesDto">
+		delete from likes
+		where
+		board_no = #{boardno}
+		and
+		user_no = #{userno}
+	</delete>
+
+	<select id="getBoardListwithUserInfo" parameterType="Integer"
+		resultMap="board">
+		select b.board_no, b.title, b.content, b.user_no,
+		b.create_date,
+		b.hit,
+		b.scope, u.user_no, u.nickname, count(l.user_no) `cnt_like`,
+		count(r.reply_no) `cnt_reply`,
+		if(l.board_no is NOT NULL,1,0) `islike`,
+		(select count(*) from file where b.board_no = board_no) `cnt_image`
+		from board b join user u
+		on b.user_no = u.user_no
+		left outer join likes
+		l
+		on b.board_no = l.board_no and l.user_no = #{userno}
+		left outer join
+		reply r
+		on b.board_no=r.board_no
+		where b.user_no = #{userno}
+		Group by
+		b.board_no
+		order by b.create_date desc;
+	</select>
+
+	<select id="getBoardListwithLike" parameterType="int"
+		resultMap="board">
+		select b.board_no, b.title, b.content, b.user_no, b.create_date, b.hit,
+		b.scope,
+		u.nickname,
+		(select count(*) from likes where b.board_no =
+		board_no) `cnt_like`,
+		(select count(*) from reply where b.board_no =
+		board_no) `cnt_reply`,
+		if(l.board_no is NOT NULL,1,0) `islike`
+		from
+		board b join user u on b.user_no = u.user_no
+		left outer join likes l on
+		b.board_no = l.board_no and l.user_no = #{userno}
+		where l.board_no is
+		not NULL
+		group by b.board_no order by b.create_date desc;
+	</select>
+
+	<select id="getBestList" resultMap="board">
+		select b.board_no, b.title,
+		b.content, DATE_FORMAT(b.create_date, '%Y년
+		%m월 %d일 %H:%i') as
+		create_date, b.hit, b.scope,u.nickname, b.user_no,
+		(select
+		count(*) from likes where b.board_no = board_no and
+		DATEDIFF(curdate(),create_date) <![CDATA[ < ]]>
+		7) `cnt_like`,
+		(select count(*) from reply where b.board_no = board_no)
+		`cnt_reply`
+		from board b join user u
+		on b.user_no = u.user_no
+		left outer
+		join likes l
+		on b.board_no = l.board_no
+		where b.scope = 0 and
+		DATEDIFF(curdate(),l.create_date) <![CDATA[ < ]]>
+		7
+		group by b.board_no
+		order by `cnt_like` desc, b.hit desc, create_date
+		desc
+		limit 4;
+	</select>
+
+	<select id="getNoticeList" resultMap="board">
+		select b.board_no,
+		b.title,
+		b.content, b.create_date, b.hit, b.scope, b.user_no,
+		u.nickname, (select
+		count(*)
+		from likes where b.board_no = board_no)
+		`cnt_like`,(select
+		count(*) from
+		reply where b.board_no = board_no)
+		`cnt_reply`,
+		if(l.board_no is
+		NOT
+		NULL,1,0)
+		`islike`
+		from board
+		b join user u
+		on b.user_no = u.user_no
+		left
+		outer join likes l
+		on
+		b.board_no =
+		l.board_no
+		where b.scope = 3
+		group by
+		b.board_no
+		order by
+		b.create_date
+		desc;
+	</select>
+
+	<select id="getcntImage" parameterType="Integer"
+		resultType="Integer">
+		select count(*)
+		from file
+		where board_no=#{boardno}
+	</select>
+</mapper>

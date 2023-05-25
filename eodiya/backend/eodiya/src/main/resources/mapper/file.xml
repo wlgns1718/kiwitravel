@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+
+<mapper namespace="com.ssafy.kiwi.file.mapper.FileMapper">
+
+	<resultMap type="com.ssafy.kiwi.file.model.FileDto" id="file">
+		<result column="save_folder" property="saveFolder" />
+		<result column="original_file" property="uploadFilename" />
+		<result column="save_file" property="storeFilename" />
+		<result column="board_no" property="boardno" />
+		<result column="user_no" property="userno" />
+	</resultMap>
+
+
+	<insert id="insertFile" parameterType="fileDto">
+		insert into file (save_folder, original_file, save_file, board_no, user_no)
+		values(#{saveFolder},#{uploadFilename},#{storeFilename},#{boardno},-1);
+	</insert>
+
+	<select id="getBoardImages" parameterType="int" resultMap="file">
+		select save_folder, save_file
+		from file
+		where board_no = #{boardno};
+		
+	</select>
+</mapper>
