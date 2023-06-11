@@ -1,4 +1,24 @@
-### EODIYA 신지훈, 윤우혁
+# frontend
 
+## Project setup
+```
+npm install
+```
 
-# 꿈과 희망이 담긴 프로젝트
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
