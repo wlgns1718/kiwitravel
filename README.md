@@ -1,5 +1,8 @@
 # KiWi (여행 소개 커뮤니티) 
 
+### 시연영상
+https://youtu.be/cNw_A4f9OMk
+
 
 ### 메인화면
 ![메인화면](https://github.com/wlgns1718/kiwitravel/assets/113763592/018ba9d3-b46d-4836-9e87-b013cbba0641)
